@@ -405,3 +405,18 @@ otError otPlatCryptoSha256Finish(otCryptoContext *aContext, uint8_t *aHash, uint
 
 	return psaToOtError(psa_hash_finish(operation, aHash, aHashSize, &hash_size));
 }
+
+otError otPlatCryptoRandomInit(void)
+{
+	return OT_ERROR_NONE;
+}
+
+otError otPlatCryptoRandomDeinit(void)
+{
+	return OT_ERROR_NONE;
+}
+
+otError otPlatCryptoRandomGet(uint8_t *aBuffer, uint16_t aSize)
+{
+	return psaToOtError(psa_generate_random(aBuffer, aSize));
+}
