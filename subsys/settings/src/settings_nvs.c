@@ -12,6 +12,7 @@
 #include "settings/settings_nvs.h"
 #include "settings_priv.h"
 #include <zephyr/storage/flash_map.h>
+#include <zephyr/sys/util.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(settings, CONFIG_SETTINGS_LOG_LEVEL);
@@ -21,6 +22,8 @@ LOG_MODULE_DECLARE(settings, CONFIG_SETTINGS_LOG_LEVEL);
 #else
 #define SETTINGS_PARTITION FIXED_PARTITION_ID(storage_partition)
 #endif
+
+#define NVS_NAME_ID_OFFSET_LOG2 14
 
 struct settings_nvs_read_fn_arg {
 	struct nvs_fs *fs;
@@ -55,6 +58,33 @@ static ssize_t settings_nvs_read_fn(void *back_end, void *data, size_t len)
 	}
 	return rc;
 }
+
+#ifdef CONFIG_NVS_LOOKUP_CACHE
+static uint16_t settings_nvs_lookup_cache_hash(uint16_t id)
+{
+	/*
+	 * 1. The NVS settings backend uses up to (NVS_NAME_ID_OFFSET - 1) NVS IDs to store
+	 *    keys and the same number of NVS IDs to store values.
+	 * 2. The value component of a given key-value pair occupies NVS ID greater than
+	 *    NVS ID of the key by exactly NVS_NAME_ID_OFFSET.
+	 * 3. The backend tries to minimize the range of NVS ID used to store keys.
+	 *
+	 * Therefore, the least significant bit of the hash should indicate whether the input
+	 * NVS ID represents a key or a value, and remaining bits of the hash should be set to
+	 * the ordinal number of the key-value pair.
+	 */
+	BUILD_ASSERT((1 << NVS_NAME_ID_OFFSET_LOG2) == NVS_NAME_ID_OFFSET);
+
+	uint16_t key_value_ord;
+	uint16_t key_value_bit;
+
+	id -= NVS_NAMECNT_ID;
+	key_value_ord = id & (NVS_NAME_ID_OFFSET - 1);
+	key_value_bit = (id >> NVS_NAME_ID_OFFSET_LOG2) & 1;
+
+	return (key_value_ord << 1) | key_value_bit;
+}
+#endif
 
 int settings_nvs_src(struct settings_nvs *cf)
 {
@@ -253,6 +283,9 @@ int settings_nvs_backend_init(struct settings_nvs *cf)
 	int rc;
 	uint16_t last_name_id;
 
+#ifdef CONFIG_NVS_LOOKUP_CACHE
+	cf->cf_nvs.lookup_cache_hash = settings_nvs_lookup_cache_hash;
+#endif
 	cf->cf_nvs.flash_device = cf->flash_dev;
 	if (cf->cf_nvs.flash_device == NULL) {
 		return -ENODEV;
