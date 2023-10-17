@@ -391,6 +391,21 @@ config NOCACHE_MEMORY
 
 menu "Interrupt Configuration"
 
+config ISR_TABLES_LOCAL_DECLARATION
+	bool "ISR tables created locally and placed by linker"
+	# Userspace is currently not supported
+	depends on !USERSPACE
+	# List of currently supported architectures
+	depends on ARM || ARM64
+	help
+	  Enable new scheme of interrupt tables generation.
+	  This is totally different generator that would create tables entries locally
+	  where the IRQ_CONNECT macro is called and then use the linker script to position it
+	  in the right place in memory.
+	  The most important adventage of such approach is that the genreated interrupt tables
+	  are LTO compatible.
+	  The drawback is that the support on the architecture port is required.
+
 config DYNAMIC_INTERRUPTS
 	bool "Installation of IRQs at runtime"
 	help
