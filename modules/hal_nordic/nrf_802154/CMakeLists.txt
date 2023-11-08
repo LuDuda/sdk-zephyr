@@ -13,6 +13,8 @@ if (CONFIG_NRF_802154_RADIO_DRIVER)
       sl_opensource/platform/nrf_802154_temperature_zephyr.c
   )
 
+  target_compile_options(nrf-802154-platform PRIVATE -fno-lto)
+
   target_compile_definitions(zephyr-802154-interface
     INTERFACE
       # CCA mode options
