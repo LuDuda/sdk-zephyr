@@ -31,6 +31,8 @@ if (CONFIG_NRF_802154_SER_RADIO)
     )
 endif ()
 
+target_compile_options(nrf-802154-platform PRIVATE -fno-lto)
+
 target_compile_definitions(zephyr-802154-interface
   INTERFACE
     # Radio driver shim layer uses raw api
