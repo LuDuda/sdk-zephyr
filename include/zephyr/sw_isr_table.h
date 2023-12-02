@@ -70,8 +70,8 @@ struct _isr_list {
 
 #ifdef CONFIG_SHARED_INTERRUPTS
 struct z_shared_isr_client {
-	void (*isr)(const void *arg);
 	const void *arg;
+	void (*isr)(const void *arg);
 };
 
 struct z_shared_isr_table_entry {
