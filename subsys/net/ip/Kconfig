@@ -556,6 +556,15 @@ config NET_TCP_WORKER_PRIO
 	  execution to the lower layer network stack, with a high risk of
 	  running out of net_bufs.
 
+config NET_TCP_IPV6_ND_REACHABILITY_HINT
+	bool "Provide a reachability hint for IPv6 Neighbor Discovery"
+	depends on NET_TCP
+	depends on NET_IPV6_ND
+	help
+	  If enabled, TCP stack will inform the IPv6 Neighbor Discovery process
+	  about the active link to a specific neighbor by signaling recent
+	  "forward progress" event as described in RFC 4861.
+
 config NET_TEST_PROTOCOL
 	bool "JSON based test protocol (UDP)"
 	help
