@@ -194,3 +194,6 @@ config OPENTHREAD_BLE_TCAT_RING_BUF_SIZE
 	default 512
 	help
 	   Openthread BLE TCAT ringbuffer size.
+
+config OPENTHREAD_CRYPTO_PSA_PLATFORM_CONTEXT_ALLOCATION
+	bool "Allocate buffers for crypto contextes in platform implementation"

@@ -5,6 +5,7 @@
  */
 
 #include <openthread/platform/crypto.h>
+#include <openthread/platform/memory.h>
 
 #include <psa/crypto.h>
 
@@ -221,6 +222,16 @@ otError otPlatCryptoHmacSha256Init(otCryptoContext *aContext)
 {
 	psa_mac_operation_t *operation;
 
+#if CONFIG_OPENTHREAD_CRYPTO_PSA_PLATFORM_CONTEXT_ALLOCATION
+	// Overwrite OpenThread default context buffer and its size.
+	aContext->mContext = otPlatCAlloc(1, sizeof(psa_mac_operation_t));
+	if (aContext->mContext == NULL) {
+		return OT_ERROR_NO_BUFS;
+	}
+
+	aContext->mContextSize = sizeof(psa_mac_operation_t);
+#endif
+
 	if (!checkContext(aContext, sizeof(psa_mac_operation_t))) {
 		return OT_ERROR_INVALID_ARGS;
 	}
@@ -233,6 +244,7 @@ otError otPlatCryptoHmacSha256Init(otCryptoContext *aContext)
 
 otError otPlatCryptoHmacSha256Deinit(otCryptoContext *aContext)
 {
+	otError error;
 	psa_mac_operation_t *operation;
 
 	if (!checkContext(aContext, sizeof(psa_mac_operation_t))) {
@@ -241,7 +253,13 @@ otError otPlatCryptoHmacSha256Deinit(otCryptoContext *aContext)
 
 	operation = aContext->mContext;
 
-	return psaToOtError(psa_mac_abort(operation));
+	error = psaToOtError(psa_mac_abort(operation));
+
+#if CONFIG_OPENTHREAD_CRYPTO_PSA_PLATFORM_CONTEXT_ALLOCATION
+	otPlatFree(aContext->mContext);
+#endif
+
+	return error;
 }
 
 otError otPlatCryptoHmacSha256Start(otCryptoContext *aContext, const otCryptoKey *aKey)
@@ -342,6 +360,16 @@ otError otPlatCryptoSha256Init(otCryptoContext *aContext)
 {
 	psa_hash_operation_t *operation;
 
+#if CONFIG_OPENTHREAD_CRYPTO_PSA_PLATFORM_CONTEXT_ALLOCATION
+	// Overwrite OpenThread default context buffer and its size.
+	aContext->mContext = otPlatCAlloc(1, sizeof(psa_hash_operation_t));
+	if (aContext->mContext == NULL) {
+		return OT_ERROR_NO_BUFS;
+	}
+
+	aContext->mContextSize = sizeof(psa_hash_operation_t);
+#endif
+
 	if (!checkContext(aContext, sizeof(psa_hash_operation_t))) {
 		return OT_ERROR_INVALID_ARGS;
 	}
@@ -354,6 +382,7 @@ otError otPlatCryptoSha256Init(otCryptoContext *aContext)
 
 otError otPlatCryptoSha256Deinit(otCryptoContext *aContext)
 {
+	otError error;
 	psa_hash_operation_t *operation;
 
 	if (!checkContext(aContext, sizeof(psa_hash_operation_t))) {
@@ -362,7 +391,13 @@ otError otPlatCryptoSha256Deinit(otCryptoContext *aContext)
 
 	operation = aContext->mContext;
 
-	return psaToOtError(psa_hash_abort(operation));
+	error = psaToOtError(psa_hash_abort(operation));
+
+#if CONFIG_OPENTHREAD_CRYPTO_PSA_PLATFORM_CONTEXT_ALLOCATION
+	otPlatFree(aContext->mContext);
+#endif
+
+	return error;
 }
 
 otError otPlatCryptoSha256Start(otCryptoContext *aContext)
